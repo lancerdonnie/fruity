@@ -1,29 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:fruity/myWidgets.dart';
+import 'package:fruity/provider/fruitProvider.dart';
 import 'Screen2.dart';
+import 'package:provider/provider.dart';
 
-void main() => runApp(MaterialApp(
-      title: "Fruity",
-      theme: ThemeData(fontFamily: 'Muli'),
-      home: Home(),
-    ));
+void main() {
+  runApp(MultiProvider(
+      providers: [
+        ChangeNotifierProvider<FruitProvider>(
+            create: (context) => FruitProvider())
+      ],
+      child: MaterialApp(
+        title: "Fruity",
+        theme: ThemeData(fontFamily: 'Muli'),
+        home: Home(),
+      )));
+}
 
 class Home extends StatelessWidget {
-  List<Map<dynamic, dynamic>> fruitItem = [
-    {"name": "Mango", "price": "2.29", "color": Color(0xFFFFE747), "ind": 1},
-    {
-      "name": "Srawberry",
-      "price": "2.50",
-      "color": Color(0xFFE9CCFE),
-      "ind": 2
-    },
-    {"name": "Pineaple", "price": "4.00", "color": Color(0xFF6CD0FC), "ind": 3},
-    {"name": "Lemon", "price": "1.75", "color": Color(0xFFFDCBA9), "ind": 4},
-    {"name": "Apple", "price": "2.40", "color": Color(0xFFFCF4D8), "ind": 5},
-    {"name": "Banana", "price": "3.15", "color": Color(0xFF9FDADE), "ind": 6},
-    {"name": "Orange", "price": "2.25", "color": Color(0xFF6EF46E), "ind": 7},
-  ];
-
   int selected = 0;
 
   List fruits = ["Popular", "Fruits", "Vegetables", "Nuts and Seeds"];
@@ -31,6 +26,7 @@ class Home extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StatefulBuilder(builder: (context, setState) {
+      final fruit = Provider.of<FruitProvider>(context);
       return Scaffold(
         body: Container(
           color: Colors.white,
@@ -48,10 +44,7 @@ class Home extends StatelessWidget {
                       Icons.apps,
                       size: 30,
                     ),
-                    Icon(
-                      Icons.shopping_basket,
-                      size: 30,
-                    ),
+                    CartCircle()
                   ],
                 ),
               ),
@@ -91,18 +84,21 @@ class Home extends StatelessWidget {
                                   });
                                 },
                                 child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(10),
+                                  borderRadius: BorderRadius.circular(20),
                                   child: Container(
+                                    padding: EdgeInsets.symmetric(
+                                        vertical: 2, horizontal: 15),
+                                    color: selected == i
+                                        ? Colors.blue
+                                        : Colors.transparent,
                                     child: Text(
                                       fruits[i],
                                       style: TextStyle(
-                                          color: selected == i
-                                              ? Colors.white
-                                              : Colors.black,
-                                          fontSize: 20,
-                                          backgroundColor: selected == i
-                                              ? Colors.blue
-                                              : Colors.transparent),
+                                        color: selected == i
+                                            ? Colors.white
+                                            : Colors.black,
+                                        fontSize: 20,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -116,88 +112,96 @@ class Home extends StatelessWidget {
               ),
               Expanded(
                   child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 15),
-                child: StaggeredGridView.countBuilder(
-                    crossAxisSpacing: 15,
-                    mainAxisSpacing: 15,
-                    crossAxisCount: 2,
-                    itemCount: 7,
-                    staggeredTileBuilder: (ind) {
-                      return StaggeredTile.fit(1);
-                    },
-                    itemBuilder: (_, i) {
-                      return GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => Fruit(fruitItem[i])),
-                          );
-                        },
-                        child: Stack(
-                          children: [
-                            Container(
-                              padding: EdgeInsets.all(20),
-                              decoration: BoxDecoration(
-                                  color: fruitItem[i]["color"],
-                                  borderRadius: BorderRadius.circular(10)),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                      padding: EdgeInsets.symmetric(horizontal: 15),
+                      child: StaggeredGridView.countBuilder(
+                          crossAxisSpacing: 15,
+                          mainAxisSpacing: 15,
+                          crossAxisCount: 2,
+                          itemCount: 7,
+                          staggeredTileBuilder: (ind) {
+                            return StaggeredTile.fit(1);
+                          },
+                          itemBuilder: (_, i) {
+                            return GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          Fruit(fruit.fruits[i])),
+                                );
+                              },
+                              child: Stack(
                                 children: [
-                                  SizedBox(height: 10),
-                                  Text(
-                                    fruitItem[i]["name"],
-                                    textAlign: TextAlign.left,
-                                    style: TextStyle(color: Colors.white),
+                                  Container(
+                                    padding: EdgeInsets.all(20),
+                                    decoration: BoxDecoration(
+                                        color: fruit.fruits[i].color,
+                                        borderRadius:
+                                            BorderRadius.circular(10)),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        SizedBox(height: 10),
+                                        Text(
+                                          fruit.fruits[i].name,
+                                          textAlign: TextAlign.left,
+                                          style: TextStyle(color: Colors.white),
+                                        ),
+                                        RichText(
+                                            text: TextSpan(
+                                                text: "\$",
+                                                style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 10),
+                                                children: [
+                                              TextSpan(
+                                                  text: fruit.fruits[i].price,
+                                                  style: TextStyle(
+                                                      color: Colors.white,
+                                                      fontSize: 20))
+                                            ])),
+                                        GridTile(
+                                          child: Image.asset(
+                                              "assets/images/${i + 1}.png",
+                                              fit: BoxFit.contain),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                  RichText(
-                                      text: TextSpan(
-                                          text: "\$",
-                                          style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 10),
-                                          children: [
-                                        TextSpan(
-                                            text: fruitItem[i]["price"],
-                                            style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 20))
-                                      ])),
-                                  // Text(
-                                  //   "\$2.29",
-                                  // style: TextStyle(
-                                  //     color: Colors.white, fontSize: 20),
-                                  // ),
-                                  GridTile(
-                                    child: Image.asset(
-                                        "assets/images/${i + 1}.png",
-                                        fit: BoxFit.contain),
-                                  ),
+                                  Positioned(
+                                    top: 0,
+                                    right: 0,
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        Provider.of<FruitProvider>(context,
+                                                listen: false)
+                                            .click(fruit.fruits[i].index);
+                                      },
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                            color:
+                                                Color(0x000).withOpacity(0.1),
+                                            borderRadius: BorderRadius.only(
+                                                topRight: Radius.circular(10),
+                                                bottomLeft:
+                                                    Radius.circular(10))),
+                                        height: 40,
+                                        width: 40,
+                                        child: Icon(
+                                          !fruit.fruits[i].clicked
+                                              ? Icons.add
+                                              : Icons.remove,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  )
                                 ],
                               ),
-                            ),
-                            Positioned(
-                              top: 0,
-                              right: 0,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                    color: Color(0x000).withOpacity(0.1),
-                                    borderRadius: BorderRadius.only(
-                                        topRight: Radius.circular(10),
-                                        bottomLeft: Radius.circular(10))),
-                                height: 40,
-                                width: 40,
-                                child: Icon(
-                                  Icons.add,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            )
-                          ],
-                        ),
-                      );
-                    }),
-              ))
+                            );
+                          })))
             ],
           ),
         ),

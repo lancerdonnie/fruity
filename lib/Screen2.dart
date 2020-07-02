@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:fruity/myWidgets.dart';
+import 'package:fruity/provider/fruitProvider.dart';
+import 'package:provider/provider.dart';
 import 'package:smooth_star_rating/smooth_star_rating.dart';
 
 class Fruit extends StatelessWidget {
@@ -7,12 +10,14 @@ class Fruit extends StatelessWidget {
   Fruit(this.data);
   @override
   Widget build(BuildContext context) {
+    print("haha ${data.index}");
+
     return StatefulBuilder(builder: (context, setState) {
       return Scaffold(
         body: Container(
           height: MediaQuery.of(context).size.height,
           width: MediaQuery.of(context).size.width,
-          color: data["color"],
+          color: data.color,
           child: Column(
             children: <Widget>[
               SizedBox(
@@ -23,7 +28,7 @@ class Fruit extends StatelessWidget {
                 fit: StackFit.expand,
                 alignment: Alignment.center,
                 children: <Widget>[
-                  Image.asset("assets/images/${data["ind"]}.png"),
+                  Image.asset("assets/images/${data.image}.png"),
                   Positioned(
                     top: 0,
                     left: 0,
@@ -40,10 +45,7 @@ class Fruit extends StatelessWidget {
                             size: 30,
                           ),
                         ),
-                        Icon(
-                          Icons.shopping_basket,
-                          size: 30,
-                        ),
+                        CartCircle(),
                       ],
                     ),
                   )
@@ -64,10 +66,10 @@ class Fruit extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: <Widget>[
                           Text(
-                            data["name"],
+                            data.name,
                             style: TextStyle(fontSize: 20),
                           ),
-                          Text("\$${data["price"]}",
+                          Text("\$${data.price}",
                               style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 18,
@@ -117,18 +119,34 @@ class Fruit extends StatelessWidget {
                                       color: Color(0xFFE8E8E8),
                                       borderRadius: BorderRadius.circular(8)),
                                   padding: EdgeInsets.all(5),
-                                  child: Icon(Icons.remove)),
+                                  child: GestureDetector(
+                                    child: Icon(Icons.remove),
+                                    onTap: () {
+                                      Provider.of<FruitProvider>(context,
+                                              listen: false)
+                                          .decrease(data.index);
+                                    },
+                                  )),
                               Padding(
                                 padding:
                                     const EdgeInsets.symmetric(horizontal: 20),
-                                child: Text("1"),
+                                child: Text(Provider.of<FruitProvider>(context)
+                                    .fruitInCart(data.index)
+                                    .toString()),
                               ),
                               Container(
                                   decoration: BoxDecoration(
                                       color: Color(0xFFE8E8E8),
                                       borderRadius: BorderRadius.circular(8)),
                                   padding: EdgeInsets.all(5),
-                                  child: Icon(Icons.add)),
+                                  child: GestureDetector(
+                                    child: Icon(Icons.add),
+                                    onTap: () {
+                                      Provider.of<FruitProvider>(context,
+                                              listen: false)
+                                          .increase(data.index);
+                                    },
+                                  )),
                             ],
                           )
                         ],
@@ -153,10 +171,20 @@ class Fruit extends StatelessWidget {
                             ),
                             padding: const EdgeInsets.symmetric(
                                 vertical: 15.0, horizontal: 70.0),
-                            child: Text("Add to Cart",
-                                style: TextStyle(
-                                  color: Colors.white,
-                                )),
+                            child: GestureDetector(
+                              onTap: () {
+                                Provider.of<FruitProvider>(context,
+                                        listen: false)
+                                    .click(data.index);
+                              },
+                              child: Text(
+                                  data.clicked
+                                      ? "Remove from Cart"
+                                      : "Add to Cart",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                  )),
+                            ),
                           )
                         ],
                       )
